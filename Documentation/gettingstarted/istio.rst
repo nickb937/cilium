@@ -31,12 +31,12 @@ Step 2: Install Istio
 
 Install the `Helm client <https://docs.helm.sh/using_helm/#installing-helm>`_.
 
-Download `Istio version 1.2.5
-<https://github.com/istio/istio/releases/tag/1.2.5>`_:
+Download `Istio version 1.4.3
+<https://github.com/istio/istio/releases/tag/1.4.3>`_:
 
 ::
 
-   export ISTIO_VERSION=1.2.5
+   export ISTIO_VERSION=1.4.3
    curl -L https://git.io/getLatestIstio | sh -
    export ISTIO_HOME=`pwd`/istio-${ISTIO_VERSION}
    export PATH="$PATH:${ISTIO_HOME}/bin"
@@ -89,7 +89,7 @@ of Pilot, and disables unused services:
 
 ::
 
-    helm template istio-cilium-helm --name istio --namespace istio-system \
+    helm template istio istio-cilium-helm --namespace istio-system \
         --set pilot.image=docker.io/cilium/istio_pilot:${ISTIO_VERSION} \
         --set sidecarInjectorWebhook.enabled=false \
         --set global.controlPlaneSecurityEnabled=true \
@@ -104,7 +104,7 @@ Deploy Istio onto Kubernetes:
 ::
 
     kubectl create namespace istio-system
-    helm template ${ISTIO_HOME}/install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
+    helm template istio-init ${ISTIO_HOME}/install/kubernetes/helm/istio-init --namespace istio-system | kubectl apply -f -
 
 Verify that 23 Istio CRDs have been created:
 
@@ -194,21 +194,6 @@ Check the progress of the deployment (every service should have an
     details-v1       1/1     1            1           12s
     productpage-v1   1/1     1            1           13s
     reviews-v1       1/1     1            1           12s
-
-Once all the pods are available, verify that the application works by
-making a query from reviews pod to the productpage:
-
-.. note::
-
-   'sudo' here is needed to cause the curl connection to be forwarded
-   to the proxy. Without it the connection is considered as coming
-   from the proxy itself, causing the destination proxy to close the
-   connection on (missing) TLS handshake failure.
-
-::
-
-    kubectl exec -it $(kubectl get pod -l app=reviews -o jsonpath='{.items[0].metadata.name}') -c istio-proxy -- sudo curl productpage:9080/productpage | grep "<title>.*</title>"
-        <title>Simple Bookstore App</title>
 
 .. only:: not (epub or latex or html)
 
